@@ -1,0 +1,43 @@
+# Service Status menu bar configuration
+# The app creates this file automatically at:
+# ~/Library/Application Support/Service Status/services.yaml
+
+poll_interval_seconds: 300
+request_timeout_seconds: 10
+
+services:
+  - name: GitHub
+    type: statuspage
+    url: https://www.githubstatus.com
+
+  - name: OpenAI
+    type: statuspage
+    url: https://status.openai.com
+
+  - name: Anthropic
+    type: statuspage
+    url: https://status.anthropic.com
+
+  - name: Cloudflare
+    type: statuspage
+    url: https://www.cloudflarestatus.com
+
+  - name: Supabase
+    type: statuspage
+    url: https://status.supabase.com
+
+  # Checks for an exact HTTP status. If expected_status is omitted,
+  # any 2xx response is considered operational.
+  # - name: My Website
+  #   type: http
+  #   url: https://example.com
+  #   expected_status: 200
+  #   timeout_seconds: 5
+
+  # Checks a scalar value in a JSON response. Dotted paths and array
+  # indexes are supported, for example: checks.0.status
+  # - name: My API
+  #   type: json
+  #   url: https://api.example.com/health
+  #   json_path: status
+  #   expected_value: healthy
