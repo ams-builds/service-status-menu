@@ -1,0 +1,15 @@
+{
+  "poll_interval_seconds": 300,
+  "request_timeout_seconds": 10,
+  "services": [
+    { "name": "GitHub", "type": "statuspage", "url": "https://www.githubstatus.com" },
+    { "name": "OpenAI", "type": "statuspage", "url": "https://status.openai.com" },
+    { "name": "Anthropic", "type": "statuspage", "url": "https://status.anthropic.com" },
+    { "name": "Cloudflare", "type": "statuspage", "url": "https://www.cloudflarestatus.com" },
+    { "name": "Supabase", "type": "statuspage", "url": "https://status.supabase.com" },
+
+    { "name": "My Website (HTTP check example)", "type": "http", "url": "https://example.com", "expected_status": 200, "timeout_seconds": 5 },
+
+    { "name": "My API (JSON check example)", "type": "json", "url": "https://api.example.com/health", "json_path": "status", "expected_value": "healthy" }
+  ]
+}
