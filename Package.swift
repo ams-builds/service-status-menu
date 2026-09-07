@@ -13,15 +13,9 @@ let package = Package(
             targets: ["ServiceStatusMenu"]
         )
     ],
-    dependencies: [
-        .package(url: "https://github.com/jpsim/Yams.git", from: "6.0.2")
-    ],
     targets: [
         .executableTarget(
-            name: "ServiceStatusMenu",
-            dependencies: [
-                .product(name: "Yams", package: "Yams")
-            ]
+            name: "ServiceStatusMenu"
         )
     ]
 )
