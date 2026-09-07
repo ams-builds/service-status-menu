@@ -111,7 +111,7 @@ struct MenuBarContentView: View {
                 .foregroundStyle(.secondary)
             Text("No services loaded")
                 .font(.headline)
-            Text("Open the YAML configuration, add a service, then reload it.")
+            Text("Tap 🛠️ below to add a service.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -147,6 +147,14 @@ struct MenuBarContentView: View {
                     Label("Reload Config", systemImage: "arrow.triangle.2.circlepath")
                 }
                 .disabled(store.isRefreshing)
+
+                Button {
+                    store.openSettingsWindow()
+                } label: {
+                    Text("🛠️")
+                }
+                .buttonStyle(.plain)
+                .help("Manage Services")
 
                 Spacer()
 

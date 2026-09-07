@@ -123,6 +123,54 @@ final class StatusStore: ObservableObject {
         lastRefresh = Date()
     }
 
+    func addService(name: String, urlString: String) {
+        do {
+            guard var updated = configuration else {
+                throw ConfigurationError.invalidValue("Configuration not loaded yet")
+            }
+            let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmedName.isEmpty else {
+                throw ConfigurationError.invalidValue("Enter a service name")
+            }
+            let trimmedURL = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard let url = URL(string: trimmedURL),
+                  ["http", "https"].contains(url.scheme?.lowercased() ?? "") else {
+                throw ConfigurationError.invalidValue("Enter a valid http or https URL")
+            }
+            updated.services.append(ServiceConfiguration(name: trimmedName, url: url))
+            try persist(updated)
+        } catch {
+            configurationError = error.localizedDescription
+        }
+    }
+
+    func removeService(id: String) {
+        do {
+            guard var updated = configuration else { return }
+            updated.services.removeAll { $0.id == id }
+            try persist(updated)
+        } catch {
+            configurationError = error.localizedDescription
+        }
+    }
+
+    private func persist(_ updated: AppConfiguration) throws {
+        guard let configurationURL else {
+            throw ConfigurationError.unreadableFile("Configuration file location is unknown")
+        }
+        try loader.save(updated, to: configurationURL)
+        configuration = updated
+        configurationError = nil
+
+        let validIDs = Set(updated.services.map(\.id))
+        statuses = statuses.filter { validIDs.contains($0.key) }
+        Task { await refresh() }
+    }
+
+    func openSettingsWindow() {
+        SettingsWindowController.shared.show(store: self)
+    }
+
     func status(for service: ServiceConfiguration) -> ServiceStatus? {
         statuses[service.id]
     }

@@ -216,13 +216,13 @@ struct ServiceStatus: Equatable, Sendable {
 
 enum ConfigurationError: LocalizedError, Equatable {
     case unreadableFile(String)
-    case invalidYAML(String)
+    case invalidJSON(String)
     case invalidValue(String)
 
     var errorDescription: String? {
         switch self {
         case .unreadableFile(let message): "Could not read configuration: \(message)"
-        case .invalidYAML(let message): "Invalid YAML configuration: \(message)"
+        case .invalidJSON(let message): "Invalid JSON configuration: \(message)"
         case .invalidValue(let message): "Invalid configuration: \(message)"
         }
     }
