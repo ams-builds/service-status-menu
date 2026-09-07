@@ -10,7 +10,7 @@ enum SelfTests {
         run("starter configuration", failures: &failures) {
             let directory = FileManager.default.temporaryDirectory
                 .appendingPathComponent(UUID().uuidString, isDirectory: true)
-            let url = directory.appendingPathComponent("services.yaml")
+            let url = directory.appendingPathComponent("services.json")
             let loader = ConfigurationLoader(environment: [:])
             defer { try? FileManager.default.removeItem(at: directory) }
 
@@ -23,18 +23,20 @@ enum SelfTests {
         }
 
         run("legacy status_url format", failures: &failures) {
-            let yaml = """
-            services:
-              - name: Example
-                status_url: https://status.example.com
+            let json = """
+            {
+              "services": [
+                { "name": "Example", "status_url": "https://status.example.com" }
+              ]
+            }
             """
             let directory = FileManager.default.temporaryDirectory
                 .appendingPathComponent(UUID().uuidString, isDirectory: true)
-            let url = directory.appendingPathComponent("services.yaml")
+            let url = directory.appendingPathComponent("services.json")
             defer { try? FileManager.default.removeItem(at: directory) }
 
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-            try yaml.write(to: url, atomically: true, encoding: .utf8)
+            try json.write(to: url, atomically: true, encoding: .utf8)
             let configuration = try ConfigurationLoader(environment: [:]).load(from: url)
             try require(configuration.services.first?.type == .statuspage, "default type is not statuspage")
             try require(
