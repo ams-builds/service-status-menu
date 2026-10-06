@@ -1,47 +1,70 @@
 # Service Status
 
-**Service Status** is a native SwiftUI macOS menu bar application that monitors a user-defined list of services. It runs entirely on the Mac, requires no server or database, and reloads an editable JSON configuration without recompilation. Services can also be added or removed directly from the app.
+**Your services, one icon, always in view.**
 
-![Service Status menu bar popover showing a list of monitored services with their current status](screenshot.png)
+Service Status is a native SwiftUI app for the macOS menu bar. It has no account, no server, and no data collection.
+
+![Screenshot of the Service Status popover. It shows a list of services and the status of each service.](screenshot.png)
+
+## How it works
+
+You write your services in a JSON file. The app checks all the services at the same time. One icon in the menu bar shows the result. Your Mac sends requests only to the URLs in the file.
+
+![Diagram: the services.json file feeds three check types that run at the same time. The results go to one menu bar icon. Requests leave your Mac only to the URLs in the file.](assets/how-it-checks.svg)
+
+The icon shows the worst state of all your services. If your Mac is offline, each service shows Unknown. A disconnected Mac is not proof that a service is down.
+
+![Diagram: the four app states in order of priority are Outage, Degraded, Unknown, and Operational. The icon shows the first state that any service has.](assets/worst-state-wins.svg)
 
 ## Privacy
 
-Service Status is privacy-first by design: there is no login, no account, and no data collection. It makes outbound HTTP requests only to the status/health endpoints you configure, and never to any server operated by this project. All state lives in memory on your Mac and nothing is persisted beyond the JSON configuration file, which you can edit yourself or manage through the app.
+Service Status has no login, no account, and no data collection. It sends HTTP requests only to the status and health endpoints that you configure. It never sends a request to a server of this project. All state stays in memory on your Mac. The app saves nothing except the JSON configuration file that you edit.
 
 ## Requirements
 
 - macOS 13 Ventura or newer
-- Xcode command-line tools or Xcode with Swift 6 support
-- Internet access for the configured checks
+- Xcode command-line tools, or Xcode with Swift 6 support
+- An internet connection for the checks
 
 ## Build and run
 
-From this directory, run:
+In this directory, run these commands:
 
 ```bash
 ./build-app.sh
 cp -R "dist/Service Status.app" /Applications/
 ```
 
-Launch it from Spotlight (⌘Space, "Service Status") like any other app, or open it directly with:
+Start the app from Spotlight (⌘Space, then type "Service Status"), or open it directly:
 
 ```bash
 open "dist/Service Status.app"
 ```
 
-The first launch creates:
+The first launch creates this file:
 
 ```text
 ~/Library/Application Support/Service Status/services.json
 ```
 
-Click the menu bar icon and use the 🛠️ button to add or remove services from a native window — changes are written straight back to `services.json`. You can also select **Open Configuration** from the overflow menu to edit the JSON file by hand, then **Reload Config** to pick up the changes. The source package can also be opened directly in Xcode by opening `Package.swift`.
+To add or remove a service, click the menu bar icon, then click the 🛠️ button. The app writes your changes to `services.json`.
 
-> This personal build is ad-hoc signed. Public distribution would require an Apple Developer certificate, hardened runtime configuration, notarisation, and release packaging.
+To edit the configuration by hand:
+
+1. Click the menu bar icon.
+2. Open the overflow menu.
+3. Select **Open Configuration**.
+4. Edit the JSON file.
+5. Save the file.
+6. Select **Reload Config**.
+
+You can also open `Package.swift` in Xcode to use the source package.
+
+> This build is ad-hoc signed and is for personal use. To distribute the app, you need an Apple Developer certificate, hardened runtime configuration, notarization, and release packaging.
 
 ## Configuration
 
-The top-level polling interval is expressed in seconds. A minimum of 15 seconds is enforced to avoid accidental aggressive polling.
+The key `poll_interval_seconds` sets the polling interval in seconds. The app enforces a minimum of 15 seconds. This limit prevents too many requests by mistake.
 
 ```json
 {
@@ -55,7 +78,7 @@ The top-level polling interval is expressed in seconds. A minimum of 15 seconds 
 }
 ```
 
-The original minimal format remains valid. Omitting `type` defaults to `statuspage`, and `status_url` is accepted as an alias for `url`:
+The original minimal format is still valid. If you omit `type`, the default is `statuspage`. The app also accepts `status_url` as an alias for `url`:
 
 ```json
 {
@@ -65,7 +88,7 @@ The original minimal format remains valid. Omitting `type` defaults to `statuspa
 }
 ```
 
-An explicit `id` is optional. It is useful if a service name or URL changes and you want its in-memory identity to remain stable:
+An `id` is optional. Use an `id` if the name or the URL of a service changes. The `id` keeps the in-memory identity of the service the same:
 
 ```json
 {
@@ -78,17 +101,15 @@ An explicit `id` is optional. It is useful if a service name or URL changes and 
 }
 ```
 
-Adding a service through the 🛠️ window always creates it with `type: statuspage`; use the JSON file directly for `http` or `json` checks, or for setting a custom `id`.
-
 ### Supported check types
 
 | Type | Purpose | Healthy result |
 |---|---|---|
-| `statuspage` | Atlassian Statuspage-compatible public pages | `none` indicator |
-| `http` | Websites and simple HTTP health endpoints | Configured status, or any `2xx` if omitted |
-| `json` | Structured application health endpoints | Value at `json_path` equals `expected_value` |
+| `statuspage` | Public pages that are compatible with Atlassian Statuspage | `none` indicator |
+| `http` | Websites and simple HTTP health endpoints | The configured status, or any `2xx` if you omit it |
+| `json` | Health endpoints that return JSON | The value at `json_path` equals `expected_value` |
 
-For `statuspage`, the app accepts either the public base URL or the complete `/api/v2/summary.json` URL. Statuspage indicators map as follows:
+For `statuspage`, you can use the public base URL or the complete `/api/v2/summary.json` URL. The app maps the Statuspage indicators as follows:
 
 | Indicator | App state |
 |---|---|
@@ -97,15 +118,15 @@ For `statuspage`, the app accepts either the public base URL or the complete `/a
 | `major` or `critical` | Outage |
 | Unknown value or request error | Unknown |
 
-For JSON checks, dotted object paths and numeric array indexes are supported, such as `checks.0.status`. Comparisons are case-insensitive scalar string comparisons.
+For `json` checks, you can use dotted object paths and numeric array indexes, for example `checks.0.status`. The comparison is a case-insensitive comparison of scalar strings. To compare a JSON boolean or number, write it as a JSON string, for example `"expected_value": "true"`.
 
-## Behaviour
+## Behavior
 
-Checks run concurrently so one slow service does not block the others. The menu bar icon reflects the worst current state: outage, degraded, unknown, then operational. Network failures are shown as **Unknown**, rather than incorrectly treating a disconnected Mac as evidence that every monitored service is down.
+The app runs all checks at the same time. A slow service does not block the other services.
 
-The configured interval is read before each sleep cycle. Adding, removing, or reloading services updates the list immediately; a changed polling interval takes effect after the current sleep completes. All state is in memory, and no status history is persisted.
+The app reads the polling interval before each sleep cycle. When you reload the file, the services update immediately. A new polling interval starts after the current sleep ends. All state is in memory. The app does not save status history.
 
-To use another configuration path while developing, set:
+To use a different configuration path during development, set this variable:
 
 ```bash
 export SERVICE_STATUS_CONFIG="$PWD/services.example.json"
@@ -119,22 +140,37 @@ swift run ServiceStatusMenu --self-test
 swift run ServiceStatusMenu
 ```
 
-The dependency-free self-test covers starter configuration creation, compatibility with the original `name + status_url` shape, Statuspage endpoint construction, indicator mapping, JSON path traversal, and configuration validation. It is built into the executable because some command-line-tools-only macOS installations omit both XCTest and Swift Testing runtime libraries.
+The self-test has no dependencies. It checks these items:
+
+- Creation of the starter configuration
+- Compatibility with the original `name + status_url` format
+- Construction of the Statuspage endpoint
+- Mapping of the indicators
+- JSON path traversal
+- Validation of the configuration
+
+The self-test is in the executable. Some macOS installations that have only the command-line tools do not include the XCTest and Swift Testing runtime libraries.
 
 ## Project structure
 
 | File | Responsibility |
 |---|---|
-| `Models.swift` | Configuration and runtime state models |
-| `ConfigurationLoader.swift` | JSON parsing, defaults, validation, starter-file creation, and saving |
-| `StatusChecker.swift` | Statuspage, HTTP, and JSON providers |
-| `StatusStore.swift` | Observable state, concurrent refresh, polling loop, and service add/remove |
+| `Models.swift` | Models for the configuration and the runtime state |
+| `ConfigurationLoader.swift` | JSON parsing, defaults, validation, and creation of the starter file |
+| `StatusChecker.swift` | Providers for Statuspage, HTTP, and JSON |
+| `StatusStore.swift` | Observable state, concurrent refresh, and polling loop |
 | `MenuBarContentView.swift` | Native popover interface |
-| `SettingsView.swift` | Add/remove services UI |
-| `SettingsWindowController.swift` | Hosts the settings view in a native window |
 | `ServiceStatusMenuApp.swift` | SwiftUI app and menu bar entry point |
 | `build-app.sh` | Release build, `.app` bundling, and ad-hoc signing |
 
 ## Current limitations
 
-The app is a local glanceable monitor, not an independent uptime monitor. The Mac must be awake, online, and running the application. Authenticated endpoints and custom headers are not currently supported; if added, secrets should be held in macOS Keychain rather than the JSON file. Adding a service through the 🛠️ window is limited to `statuspage`-type checks; `http` and `json` checks still require editing the file directly. HTML scraping, notifications, history, auto-launch, and the edge-docked interaction remain suitable later enhancements.
+The app is a local monitor that you can see at a glance. It is not an independent uptime monitor. The Mac must be awake, online, and running the app. The app does not support authenticated endpoints or custom headers. If we add them, store secrets in macOS Keychain, not in the configuration file.
+
+These items are possible later additions:
+
+- HTML scraping
+- Notifications
+- History
+- Auto-launch
+- The edge-docked interaction

@@ -1,0 +1,91 @@
+<svg viewBox="0 0 1200 610" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+<title id="title">How Service Status checks your services</title>
+<desc id="desc">The services.json file feeds three check types, statuspage, http and json, which run at the same time. The results go to one menu bar icon. Everything stays on your Mac except the requests to the URLs you write in the file.</desc>
+<defs>
+  <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L8,4 L0,8 z" fill="#2d3142"/>
+  </marker>
+</defs>
+
+<rect x="0" y="0" width="1200" height="610" fill="#f5f5f5"/>
+<text x="40" y="44" font-family="'Instrument Serif', Georgia, 'Times New Roman', serif" font-size="28" fill="#2d3142">How Service Status checks your services</text>
+<text x="40" y="64" font-family="'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace" font-size="9" letter-spacing="0.06em" fill="#7a8399">SERVICES.JSON &#8594; THREE CHECKS AT ONCE &#8594; ONE ICON</text>
+
+<!-- Boundary: everything inside stays on the Mac -->
+<rect x="40" y="88" width="1120" height="286" rx="8" fill="none" stroke="#7a8399" stroke-width="1" stroke-dasharray="4 4"/>
+<text x="56" y="106" font-family="'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace" font-size="9" letter-spacing="0.06em" fill="#7a8399">STAYS ON YOUR MAC</text>
+
+<!-- Input -->
+<rect x="96" y="194" width="200" height="84" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="104" y="200" width="54" height="16" rx="3" fill="#f5f5f5" stroke="#7a8399" stroke-width="1"/>
+<text x="131" y="211" text-anchor="middle" font-family="'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace" font-size="8" letter-spacing="0.06em" fill="#4f5d75">INPUT</text>
+<text x="196" y="230.9" text-anchor="middle" font-family="Geist, -apple-system, 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="600" fill="#2d3142">services.json</text>
+<text x="196" y="248.9" text-anchor="middle" font-family="'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace" font-size="9" fill="#4f5d75">you edit this file</text>
+
+<!-- Fan-out to three checks -->
+<line x1="296" y1="236" x2="358" y2="236" stroke="#2d3142" stroke-width="1"/>
+<line x1="358" y1="152" x2="358" y2="320" stroke="#2d3142" stroke-width="1"/>
+<line x1="358" y1="152" x2="416" y2="152" stroke="#2d3142" stroke-width="1" marker-end="url(#arrow)"/>
+<line x1="358" y1="236" x2="416" y2="236" stroke="#2d3142" stroke-width="1" marker-end="url(#arrow)"/>
+<line x1="358" y1="320" x2="416" y2="320" stroke="#2d3142" stroke-width="1" marker-end="url(#arrow)"/>
+<text x="420" y="106" font-family="'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace" font-size="9" letter-spacing="0.06em" fill="#7a8399">AT THE SAME TIME</text>
+
+<!-- Three check types -->
+<rect x="420" y="114" width="240" height="76" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="428" y="120" width="54" height="16" rx="3" fill="#f5f5f5" stroke="#7a8399" stroke-width="1"/>
+<text x="455" y="131" text-anchor="middle" font-family="'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace" font-size="8" letter-spacing="0.06em" fill="#4f5d75">CHECK</text>
+<text x="540" y="146.9" text-anchor="middle" font-family="Geist, -apple-system, 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="600" fill="#2d3142">statuspage</text>
+<text x="540" y="164.9" text-anchor="middle" font-family="'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace" font-size="9" fill="#4f5d75">Atlassian status pages</text>
+<rect x="420" y="198" width="240" height="76" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="428" y="204" width="54" height="16" rx="3" fill="#f5f5f5" stroke="#7a8399" stroke-width="1"/>
+<text x="455" y="215" text-anchor="middle" font-family="'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace" font-size="8" letter-spacing="0.06em" fill="#4f5d75">CHECK</text>
+<text x="540" y="230.9" text-anchor="middle" font-family="Geist, -apple-system, 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="600" fill="#2d3142">http</text>
+<text x="540" y="248.9" text-anchor="middle" font-family="'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace" font-size="9" fill="#4f5d75">websites and health endpoints</text>
+<rect x="420" y="282" width="240" height="76" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="428" y="288" width="54" height="16" rx="3" fill="#f5f5f5" stroke="#7a8399" stroke-width="1"/>
+<text x="455" y="299" text-anchor="middle" font-family="'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace" font-size="8" letter-spacing="0.06em" fill="#4f5d75">CHECK</text>
+<text x="540" y="314.9" text-anchor="middle" font-family="Geist, -apple-system, 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="600" fill="#2d3142">json</text>
+<text x="540" y="332.9" text-anchor="middle" font-family="'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace" font-size="9" fill="#4f5d75">app health values</text>
+
+<!-- Results to the icon -->
+<line x1="660" y1="152" x2="722" y2="152" stroke="#2d3142" stroke-width="1"/>
+<line x1="660" y1="236" x2="722" y2="236" stroke="#2d3142" stroke-width="1"/>
+<line x1="660" y1="320" x2="722" y2="320" stroke="#2d3142" stroke-width="1"/>
+<line x1="722" y1="152" x2="722" y2="320" stroke="#2d3142" stroke-width="1"/>
+<line x1="722" y1="236" x2="860" y2="236" stroke="#2d3142" stroke-width="1" marker-end="url(#arrow)"/>
+<text x="791" y="226" text-anchor="middle" font-family="'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace" font-size="9" letter-spacing="0.06em" fill="#7a8399">RESULTS</text>
+
+<!-- Output: focal -->
+<rect x="864" y="194" width="240" height="84" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+<rect x="872" y="200" width="60" height="16" rx="3" fill="#f5f5f5" stroke="#eb6c36" stroke-width="1"/>
+<text x="902" y="211" text-anchor="middle" font-family="'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace" font-size="8" letter-spacing="0.06em" fill="#4f5d75">OUTPUT</text>
+<text x="984" y="230.9" text-anchor="middle" font-family="Geist, -apple-system, 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="600" fill="#2d3142">Menu bar icon</text>
+<text x="984" y="248.9" text-anchor="middle" font-family="'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace" font-size="9" fill="#4f5d75">worst state wins</text>
+
+<!-- Only exit: requests to your own URLs -->
+<line x1="540" y1="358" x2="540" y2="410" stroke="#2d3142" stroke-width="1" marker-end="url(#arrow)"/>
+<text x="552" y="396" font-family="'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace" font-size="9" letter-spacing="0.06em" fill="#7a8399">REQUESTS GO ONLY TO URLS YOU WROTE</text>
+<rect x="420" y="414" width="240" height="76" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="428" y="420" width="66" height="16" rx="3" fill="#f5f5f5" stroke="#7a8399" stroke-width="1"/>
+<text x="461" y="431" text-anchor="middle" font-family="'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace" font-size="8" letter-spacing="0.06em" fill="#4f5d75">EXTERNAL</text>
+<text x="540" y="446.9" text-anchor="middle" font-family="Geist, -apple-system, 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="600" fill="#2d3142">Your services</text>
+<text x="540" y="464.9" text-anchor="middle" font-family="'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace" font-size="9" fill="#4f5d75">the URLs in services.json</text>
+
+<!-- Legend, across the body width -->
+<line x1="40" y1="520" x2="1160" y2="520" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="40" y="548" font-family="'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace" font-size="9" letter-spacing="0.06em" fill="#7a8399">LEGEND</text>
+<rect x="140" y="538" width="54" height="16" rx="3" fill="#f5f5f5" stroke="#7a8399" stroke-width="1"/>
+<text x="167" y="549" text-anchor="middle" font-family="'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace" font-size="8" letter-spacing="0.06em" fill="#4f5d75">INPUT</text>
+<text x="206" y="550" font-family="Geist, -apple-system, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#4f5d75">a file you edit</text>
+<rect x="520" y="538" width="54" height="16" rx="3" fill="#f5f5f5" stroke="#7a8399" stroke-width="1"/>
+<text x="547" y="549" text-anchor="middle" font-family="'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace" font-size="8" letter-spacing="0.06em" fill="#4f5d75">CHECK</text>
+<text x="586" y="550" font-family="Geist, -apple-system, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#4f5d75">one request for each service</text>
+<rect x="900" y="538" width="60" height="16" rx="3" fill="#f5f5f5" stroke="#eb6c36" stroke-width="1"/>
+<text x="930" y="549" text-anchor="middle" font-family="'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace" font-size="8" letter-spacing="0.06em" fill="#4f5d75">OUTPUT</text>
+<text x="972" y="550" font-family="Geist, -apple-system, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#4f5d75">what you see</text>
+<rect x="140" y="566" width="66" height="16" rx="3" fill="#f5f5f5" stroke="#7a8399" stroke-width="1"/>
+<text x="173" y="577" text-anchor="middle" font-family="'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace" font-size="8" letter-spacing="0.06em" fill="#4f5d75">EXTERNAL</text>
+<text x="218" y="578" font-family="Geist, -apple-system, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#4f5d75">outside your Mac</text>
+<line x1="520" y1="574" x2="574" y2="574" stroke="#7a8399" stroke-width="1" stroke-dasharray="4 4"/>
+<text x="586" y="578" font-family="Geist, -apple-system, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#4f5d75">edge of your Mac</text>
+</svg>
