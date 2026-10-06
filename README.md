@@ -32,6 +32,12 @@ In this directory, run these commands:
 
 ```bash
 ./build-app.sh
+cp -R "dist/Service Status.app" /Applications/
+```
+
+Start the app from Spotlight (⌘Space, then type "Service Status"), or open it directly:
+
+```bash
 open "dist/Service Status.app"
 ```
 
@@ -41,7 +47,9 @@ The first launch creates this file:
 ~/Library/Application Support/Service Status/services.json
 ```
 
-To change the configuration:
+To add or remove a service, click the menu bar icon, then click the 🛠️ button. The app writes your changes to `services.json`.
+
+To edit the configuration by hand:
 
 1. Click the menu bar icon.
 2. Open the overflow menu.
