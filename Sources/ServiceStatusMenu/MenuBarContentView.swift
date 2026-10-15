@@ -1,183 +1,114 @@
 import SwiftUI
 
+/// Same layout language as the Orbi menu: near-black base, emoji plates, hairline cards, 400 x 660.
 struct MenuBarContentView: View {
     @ObservedObject var store: StatusStore
+    @State private var spin = 0.0
+
+    private func count(_ condition: ServiceCondition) -> Int {
+        store.services.filter { (store.status(for: $0)?.condition ?? .unknown) == condition }.count
+    }
 
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(alignment: .leading, spacing: 14) {
             header
-            Divider()
-
             if let error = store.configurationError {
-                configurationError(error)
+                Text("⚠️ " + error)
+                    .font(.system(size: 12)).foregroundStyle(Theme.bad)
+                    .padding(12).frame(maxWidth: .infinity, alignment: .leading).card(radius: 14)
+                    .textSelection(.enabled)
             }
-
+            stats
             if store.services.isEmpty {
-                emptyState
+                Text("📭").font(.system(size: 28)).padding(.top, 24)
+                    .frame(maxWidth: .infinity)
+                    .help("No services loaded. Tap 🛠️ to add one.")
+                    .accessibilityLabel("No services loaded")
+                    .frame(maxHeight: .infinity, alignment: .top)
             } else {
-                serviceList
+                ScrollView {
+                    LazyVStack(spacing: 8) {
+                        ForEach(store.services) { service in
+                            ServiceRow(service: service, status: store.status(for: service), isRefreshing: store.isRefreshing)
+                        }
+                    }
+                }
+                .frame(maxHeight: .infinity)
             }
-
-            Divider()
             footer
         }
-        .frame(width: 390)
+        .padding(16)
+        .frame(width: 400, height: 660, alignment: .top)
+        .background(Theme.base)
     }
+
+    // MARK: Header
 
     private var header: some View {
-        HStack(spacing: 10) {
-            Image(systemName: store.overallCondition.symbolName)
-                .font(.title2)
-                .foregroundStyle(store.overallCondition.color)
-
+        HStack(spacing: 12) {
+            IconPlate(glyph: store.overallCondition.emoji, label: store.overallCondition.title, size: 40)
             VStack(alignment: .leading, spacing: 2) {
                 Text("Service Status")
-                    .font(.headline)
-                Text(headerSubtitle)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 17, weight: .semibold)).foregroundStyle(Theme.fg)
+                Text(headerDetail).font(.system(size: 12)).foregroundStyle(Theme.muted).lineLimit(1)
             }
-
             Spacer()
-
-            if store.isRefreshing {
-                ProgressView()
-                    .controlSize(.small)
+            IconButton(glyph: "🛠️", help: "Manage services") { store.openSettingsWindow() }
+            IconButton(glyph: "🔄", help: "Refresh now") {
+                withAnimation(.easeInOut(duration: 0.6)) { spin += 360 }
+                Task { await store.refresh() }
             }
-        }
-        .padding(14)
-    }
-
-    private var headerSubtitle: String {
-        if store.isRefreshing {
-            return "Checking services…"
-        }
-        if let lastRefresh = store.lastRefresh {
-            return "Updated \(lastRefresh.formatted(.relative(presentation: .named)))"
-        }
-        return "Waiting for first check"
-    }
-
-    private static let estimatedRowHeight: CGFloat = 70
-    private static let listMaxHeight: CGFloat = 430
-
-    private var serviceList: some View {
-        Group {
-            if CGFloat(store.services.count) * Self.estimatedRowHeight > Self.listMaxHeight {
-                ScrollView {
-                    serviceRows
-                }
-                .frame(height: Self.listMaxHeight)
-            } else {
-                serviceRows
-            }
+            .rotationEffect(.degrees(spin))
+            .disabled(store.isRefreshing || store.configuration == nil)
         }
     }
 
-    private var serviceRows: some View {
-        LazyVStack(spacing: 0) {
-            ForEach(store.services) { service in
-                ServiceRow(
-                    service: service,
-                    status: store.status(for: service),
-                    isRefreshing: store.isRefreshing
-                )
-                if service.id != store.services.last?.id {
-                    Divider()
-                        .padding(.leading, 46)
-                }
-            }
+    private var headerDetail: String {
+        if store.isRefreshing { return "⏳" }
+        if let last = store.lastRefresh { return "🔄 " + Self.clock.string(from: last) + " · ⏱️ " + store.refreshIntervalDescription }
+        return "—"
+    }
+
+    // MARK: Counts
+
+    private var stats: some View {
+        HStack(spacing: 10) {
+            stat(count(.operational), "✅", "Operational", Theme.good)
+            stat(count(.degraded), "⚠️", "Degraded", count(.degraded) == 0 ? Theme.fg : Theme.warn)
+            stat(count(.outage), "🛑", "Outage", count(.outage) == 0 ? Theme.fg : Theme.bad)
         }
     }
 
-    private func configurationError(_ message: String) -> some View {
-        HStack(alignment: .top, spacing: 9) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(.orange)
-            Text(message)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .textSelection(.enabled)
-            Spacer(minLength: 0)
+    private func stat(_ value: Int, _ glyph: String, _ label: String, _ color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(glyph).font(.system(size: 16))
+            Text("\(value)").font(.system(size: 26, weight: .bold)).monospacedDigit().foregroundStyle(color)
         }
-        .padding(12)
-        .background(.orange.opacity(0.08))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 14).padding(.vertical, 12)
+        .card(radius: 16)
+        .help(label)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(label): \(value)")
     }
 
-    private var emptyState: some View {
-        VStack(spacing: 8) {
-            Image(systemName: "list.bullet.rectangle")
-                .font(.largeTitle)
-                .foregroundStyle(.secondary)
-            Text("No services loaded")
-                .font(.headline)
-            Text("Tap 🛠️ below to add a service.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(28)
-    }
+    // MARK: Footer
 
     private var footer: some View {
-        VStack(spacing: 8) {
-            HStack {
-                Text(store.refreshIntervalDescription)
-                Spacer()
-                if let url = store.configurationURL {
-                    Text(url.lastPathComponent)
-                        .help(url.path)
-                }
-            }
-            .font(.caption2)
-            .foregroundStyle(.secondary)
-
-            HStack(spacing: 8) {
-                Button {
-                    Task { await store.refresh() }
-                } label: {
-                    Label("Refresh Now", systemImage: "arrow.clockwise")
-                }
-                .disabled(store.isRefreshing || store.configuration == nil)
-
-                Button {
-                    Task { await store.reloadConfiguration() }
-                } label: {
-                    Label("Reload Config", systemImage: "arrow.triangle.2.circlepath")
-                }
+        HStack {
+            IconButton(glyph: "📥", help: "Reload config") { Task { await store.reloadConfiguration() } }
                 .disabled(store.isRefreshing)
-
-                Button {
-                    store.openSettingsWindow()
-                } label: {
-                    Text("🛠️")
-                }
-                .buttonStyle(.plain)
-                .help("Manage Services")
-
-                Spacer()
-
-                Menu {
-                    Button("Open Configuration") {
-                        store.openConfiguration()
-                    }
-                    Button("Show in Finder") {
-                        store.revealConfiguration()
-                    }
-                    Divider()
-                    Button("Quit Service Status") {
-                        store.quit()
-                    }
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                }
-                .menuStyle(.borderlessButton)
-                .fixedSize()
-            }
+            IconButton(glyph: "📂", help: "Show config in Finder") { store.revealConfiguration() }
+            Spacer()
+            IconButton(glyph: "🚪", help: "Quit Service Status") { store.quit() }
         }
-        .padding(12)
     }
+
+    private static let clock: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter
+    }()
 }
 
 private struct ServiceRow: View {
@@ -185,51 +116,41 @@ private struct ServiceRow: View {
     let status: ServiceStatus?
     let isRefreshing: Bool
 
-    private var condition: ServiceCondition {
-        status?.condition ?? .unknown
+    private var condition: ServiceCondition { status?.condition ?? .unknown }
+
+    private var tone: Color {
+        switch condition {
+        case .operational: Theme.muted
+        case .degraded: Theme.warn
+        case .outage: Theme.bad
+        case .unknown: Theme.muted
+        }
     }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            Image(systemName: condition.symbolName)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(condition.color)
-                .frame(width: 22, height: 22)
-
-            VStack(alignment: .leading, spacing: 3) {
-                HStack {
-                    Text(service.name)
-                        .font(.body.weight(.medium))
-                    Spacer()
-                    Text(condition.title)
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(condition.color)
-                }
-
-                Text(status?.message ?? (isRefreshing ? "Checking…" : "Not checked yet"))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-
-                if let status {
-                    HStack(spacing: 8) {
-                        Text(status.checkedAt, style: .time)
-                        if let latency = status.responseTimeMilliseconds {
-                            Text("\(latency) ms")
-                        }
-                    }
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
+        HStack(spacing: 12) {
+            IconPlate(glyph: condition.emoji, label: condition.title)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(service.name).font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.fg).lineLimit(1)
+                Text(status?.message ?? (isRefreshing ? "⏳" : "—"))
+                    .font(.system(size: 11)).foregroundStyle(tone).lineLimit(2)
+            }
+            Spacer(minLength: 4)
+            if let status {
+                VStack(alignment: .trailing, spacing: 3) {
+                    Text(status.responseTimeMilliseconds.map { "\($0) ms" } ?? " ")
+                        .font(.system(size: 13, weight: .semibold)).monospacedDigit().foregroundStyle(Theme.fg)
+                    Text(status.checkedAt, style: .time)
+                        .font(.system(size: 10)).monospacedDigit().foregroundStyle(Theme.faint)
                 }
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 10).padding(.vertical, 8)
+        .card(radius: 16)
         .contentShape(Rectangle())
         .contextMenu {
-            Button("Open \(service.name)") {
-                NSWorkspace.shared.open(service.url)
-            }
+            Button("Open \(service.name)") { NSWorkspace.shared.open(service.url) }
         }
+        .help(condition.title)
     }
 }

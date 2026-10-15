@@ -4,7 +4,9 @@
 
 Service Status is a native SwiftUI app for the macOS menu bar. It has no account, no server, and no data collection.
 
-![Screenshot of the Service Status popover. It shows a list of services and the status of each service.](screenshot.png)
+![Screenshot of the Service Status popover. A dark glass-style panel shows three counts (working, degraded, outage) above one rounded card for each service.](screenshot.png)
+
+The interface uses a glass-style design: a dark panel, rounded cards, and emoji for every state. Each state has its own shape, so colour is never the only signal. Every icon has a tooltip and a VoiceOver label.
 
 ## How it works
 
@@ -52,11 +54,10 @@ To add or remove a service, click the menu bar icon, then click the 🛠️ butt
 To edit the configuration by hand:
 
 1. Click the menu bar icon.
-2. Open the overflow menu.
-3. Select **Open Configuration**.
-4. Edit the JSON file.
-5. Save the file.
-6. Select **Reload Config**.
+2. Click 📂 to show the file in Finder.
+3. Edit the JSON file.
+4. Save the file.
+5. Click 📥 to reload the configuration.
 
 You can also open `Package.swift` in Xcode to use the source package.
 
@@ -160,6 +161,7 @@ The self-test is in the executable. Some macOS installations that have only the 
 | `StatusChecker.swift` | Providers for Statuspage, HTTP, and JSON |
 | `StatusStore.swift` | Observable state, concurrent refresh, and polling loop |
 | `MenuBarContentView.swift` | Native popover interface |
+| `Theme.swift` | Colours, cards, and emoji buttons for the glass-style design |
 | `ServiceStatusMenuApp.swift` | SwiftUI app and menu bar entry point |
 | `build-app.sh` | Release build, `.app` bundling, and ad-hoc signing |
 

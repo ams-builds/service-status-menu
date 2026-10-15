@@ -178,6 +178,16 @@ enum ServiceCondition: String, Codable, Equatable, Sendable {
         }
     }
 
+    /// Each state has its own shape, so colour is never the only cue.
+    var emoji: String {
+        switch self {
+        case .operational: "✅"
+        case .degraded: "⚠️"
+        case .outage: "🛑"
+        case .unknown: "❓"
+        }
+    }
+
     var color: Color {
         switch self {
         case .operational: .green
