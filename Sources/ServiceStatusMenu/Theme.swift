@@ -87,3 +87,61 @@ struct IconButton: View {
     }
 }
 
+
+// MARK: Floating glass
+
+/// Floating chrome: Liquid Glass on macOS 26, a thin material before that, solid when transparency is reduced.
+/// It only reads as glass because the page scrolls underneath it, so keep it to bars, never to rows.
+private struct GlassBar<S: InsettableShape>: ViewModifier {
+    let shape: S
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorSchemeContrast) private var contrast
+
+    func body(content: Content) -> some View {
+        if reduceTransparency || contrast == .increased {
+            content
+                .background(shape.fill(Theme.plate))
+                .overlay(shape.strokeBorder(Theme.hairline, lineWidth: 1))
+        } else if #available(macOS 26.0, *) {
+            content.glassEffect(.regular, in: shape)
+        } else {
+            content
+                .background(shape.fill(.ultraThinMaterial))
+                .overlay(shape.strokeBorder(
+                    LinearGradient(colors: [Theme.fg.opacity(0.22), Theme.fg.opacity(0.04)], startPoint: .top, endPoint: .bottom),
+                    lineWidth: 0.75))
+        }
+    }
+}
+
+extension View {
+    func glassBar(radius: CGFloat = 22) -> some View {
+        modifier(GlassBar(shape: RoundedRectangle(cornerRadius: radius, style: .continuous)))
+    }
+
+    func glassPill() -> some View {
+        modifier(GlassBar(shape: Capsule()))
+    }
+}
+
+/// One emoji tab in the bottom dock. The chosen tab sits on a lighter pill.
+struct DockTab: View {
+    let glyph: String
+    let help: String
+    var selected = false
+    let action: () -> Void
+    @State private var hovering = false
+
+    var body: some View {
+        Button(action: action) {
+            Text(glyph)
+                .font(.system(size: 18))
+                .frame(width: 46, height: 38)
+                .background(Capsule().fill(selected ? Theme.fg.opacity(0.16) : hovering ? Theme.fg.opacity(0.07) : .clear))
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering = $0 }
+        .accessibilityLabel(help)
+        .help(help)
+    }
+}

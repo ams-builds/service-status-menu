@@ -225,6 +225,18 @@ private struct StatuspageSummary: Decodable {
     struct Incident: Decodable {
         let name: String
     }
+
+    private enum CodingKeys: String, CodingKey {
+        case status, incidents
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        status = try container.decode(Status.self, forKey: .status)
+        // Some Statuspage deployments (e.g. OpenAI) omit "incidents" entirely
+        // when there are none, rather than returning an empty array.
+        incidents = try container.decodeIfPresent([Incident].self, forKey: .incidents) ?? []
+    }
 }
 
 private enum CheckError: LocalizedError {

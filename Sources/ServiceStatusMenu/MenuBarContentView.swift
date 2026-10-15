@@ -1,8 +1,12 @@
 import SwiftUI
 
 /// Same layout language as the Orbi menu: near-black base, emoji plates, hairline cards, 400 x 660.
+/// The title bar and the dock float on glass above the page, so the page scrolls underneath them.
 struct MenuBarContentView: View {
+    enum Page { case status, manage }
+
     @ObservedObject var store: StatusStore
+    @State private var page = Page.status
     @State private var spin = 0.0
 
     private func count(_ condition: ServiceCondition) -> Int {
@@ -10,57 +14,69 @@ struct MenuBarContentView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            header
-            if let error = store.configurationError {
-                Text("⚠️ " + error)
-                    .font(.system(size: 12)).foregroundStyle(Theme.bad)
-                    .padding(12).frame(maxWidth: .infinity, alignment: .leading).card(radius: 14)
-                    .textSelection(.enabled)
-            }
-            stats
-            if store.services.isEmpty {
-                Text("📭").font(.system(size: 28)).padding(.top, 24)
-                    .frame(maxWidth: .infinity)
-                    .help("No services loaded. Tap 🛠️ to add one.")
-                    .accessibilityLabel("No services loaded")
-                    .frame(maxHeight: .infinity, alignment: .top)
-            } else {
-                ScrollView {
-                    LazyVStack(spacing: 8) {
-                        ForEach(store.services) { service in
-                            ServiceRow(service: service, status: store.status(for: service), isRefreshing: store.isRefreshing)
-                        }
+        ZStack(alignment: .top) {
+            Theme.base
+
+            ScrollView {
+                VStack(spacing: 8) {
+                    if let error = store.configurationError {
+                        Text("⚠️ " + error)
+                            .font(.system(size: 12)).foregroundStyle(Theme.bad)
+                            .padding(12).frame(maxWidth: .infinity, alignment: .leading).card(radius: 14)
+                            .textSelection(.enabled)
                     }
+                    if page == .status { statusPage } else { ManageView(store: store) }
                 }
-                .frame(maxHeight: .infinity)
+                .padding(.horizontal, 16)
+                .padding(.top, 92)
+                .padding(.bottom, 88)
             }
-            footer
+
+            header.padding(.horizontal, 12).padding(.top, 12)
+
+            VStack {
+                Spacer()
+                dock.padding(.bottom, 14)
+            }
         }
-        .padding(16)
-        .frame(width: 400, height: 660, alignment: .top)
-        .background(Theme.base)
+        .frame(width: 400, height: 660)
     }
 
-    // MARK: Header
+    // MARK: Pages
+
+    @ViewBuilder private var statusPage: some View {
+        if store.services.isEmpty {
+            Text("📭").font(.system(size: 28)).padding(.top, 24)
+                .help("No services loaded. Open 🛠️ to add one.")
+                .accessibilityLabel("No services loaded")
+        } else {
+            ForEach(store.services) { service in
+                ServiceRow(service: service, status: store.status(for: service), isRefreshing: store.isRefreshing)
+            }
+        }
+    }
+
+    // MARK: Floating chrome
 
     private var header: some View {
         HStack(spacing: 12) {
-            IconPlate(glyph: store.overallCondition.emoji, label: store.overallCondition.title, size: 40)
+            Text(store.overallCondition.emoji).font(.system(size: 26))
+                .help(store.overallCondition.title)
+                .accessibilityLabel(store.overallCondition.title)
             VStack(alignment: .leading, spacing: 2) {
                 Text("Service Status")
-                    .font(.system(size: 17, weight: .semibold)).foregroundStyle(Theme.fg)
-                Text(headerDetail).font(.system(size: 12)).foregroundStyle(Theme.muted).lineLimit(1)
+                    .font(.system(size: 16, weight: .semibold)).foregroundStyle(Theme.fg)
+                Text(headerDetail).font(.system(size: 11)).foregroundStyle(Theme.muted).lineLimit(1)
             }
             Spacer()
-            IconButton(glyph: "🛠️", help: "Manage services") { store.openSettingsWindow() }
-            IconButton(glyph: "🔄", help: "Refresh now") {
-                withAnimation(.easeInOut(duration: 0.6)) { spin += 360 }
-                Task { await store.refresh() }
+            HStack(spacing: -6) {
+                chip("✅", count(.operational))
+                chip("⚠️", count(.degraded))
+                chip("🛑", count(.outage))
             }
-            .rotationEffect(.degrees(spin))
-            .disabled(store.isRefreshing || store.configuration == nil)
         }
+        .padding(.horizontal, 16).padding(.vertical, 12)
+        .glassBar(radius: 22)
     }
 
     private var headerDetail: String {
@@ -69,39 +85,39 @@ struct MenuBarContentView: View {
         return "—"
     }
 
-    // MARK: Counts
-
-    private var stats: some View {
-        HStack(spacing: 10) {
-            stat(count(.operational), "✅", "Operational", Theme.good)
-            stat(count(.degraded), "⚠️", "Degraded", count(.degraded) == 0 ? Theme.fg : Theme.warn)
-            stat(count(.outage), "🛑", "Outage", count(.outage) == 0 ? Theme.fg : Theme.bad)
+    private func chip(_ glyph: String, _ value: Int) -> some View {
+        HStack(spacing: 3) {
+            Text(glyph).font(.system(size: 12))
+            Text("\(value)").font(.system(size: 12, weight: .semibold)).monospacedDigit().foregroundStyle(Theme.fg)
         }
-    }
-
-    private func stat(_ value: Int, _ glyph: String, _ label: String, _ color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(glyph).font(.system(size: 16))
-            Text("\(value)").font(.system(size: 26, weight: .bold)).monospacedDigit().foregroundStyle(color)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 14).padding(.vertical, 12)
-        .card(radius: 16)
-        .help(label)
+        .padding(.horizontal, 9).frame(height: 28)
+        .background(Capsule().fill(Theme.base.opacity(0.55)))
+        .padding(.leading, 8)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(label): \(value)")
+        .accessibilityLabel("\(glyph) \(value)")
     }
 
-    // MARK: Footer
-
-    private var footer: some View {
-        HStack {
-            IconButton(glyph: "📥", help: "Reload config") { Task { await store.reloadConfiguration() } }
-                .disabled(store.isRefreshing)
-            IconButton(glyph: "📂", help: "Show config in Finder") { store.revealConfiguration() }
-            Spacer()
-            IconButton(glyph: "🚪", help: "Quit Service Status") { store.quit() }
+    private var dock: some View {
+        HStack(spacing: 2) {
+            DockTab(glyph: "📋", help: "Services", selected: page == .status) {
+                withAnimation(.spring(response: 0.4, dampingFraction: 1)) { page = .status }
+            }
+            DockTab(glyph: "🛠️", help: "Manage services", selected: page == .manage) {
+                withAnimation(.spring(response: 0.4, dampingFraction: 1)) { page = .manage }
+            }
+            Rectangle().fill(Theme.hairline).frame(width: 1, height: 22).padding(.horizontal, 4)
+            DockTab(glyph: "🔄", help: "Refresh now") {
+                withAnimation(.easeInOut(duration: 0.6)) { spin += 360 }
+                Task { await store.refresh() }
+            }
+            .rotationEffect(.degrees(spin))
+            .disabled(store.isRefreshing || store.configuration == nil)
+            DockTab(glyph: "📥", help: "Reload config") { Task { await store.reloadConfiguration() } }
+            DockTab(glyph: "📂", help: "Show config in Finder") { store.revealConfiguration() }
+            DockTab(glyph: "🚪", help: "Quit Service Status") { store.quit() }
         }
+        .padding(6)
+        .glassPill()
     }
 
     private static let clock: DateFormatter = {
@@ -109,6 +125,57 @@ struct MenuBarContentView: View {
         formatter.dateFormat = "HH:mm"
         return formatter
     }()
+}
+
+/// Add and remove services inside the panel, so nothing opens in a separate window.
+private struct ManageView: View {
+    @ObservedObject var store: StatusStore
+    @State private var newName = ""
+    @State private var newURL = ""
+
+    private var canAdd: Bool {
+        !newName.trimmingCharacters(in: .whitespaces).isEmpty && !newURL.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
+    private func field(_ title: String, text: Binding<String>) -> some View {
+        TextField(title, text: text)
+            .textFieldStyle(.plain).font(.system(size: 13))
+            .padding(.horizontal, 10).frame(height: 30)
+            .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(Theme.hover))
+    }
+
+    var body: some View {
+        VStack(spacing: 8) {
+            VStack(spacing: 8) {
+                field("Name", text: $newName)
+                field("https://status.example.com", text: $newURL)
+                HStack {
+                    Spacer()
+                    IconButton(glyph: "➕", help: "Add service") {
+                        store.addService(name: newName, urlString: newURL)
+                        if store.configurationError == nil { newName = ""; newURL = "" }
+                    }
+                    .disabled(!canAdd)
+                    .opacity(canAdd ? 1 : 0.4)
+                }
+            }
+            .padding(12).card(radius: 16)
+
+            ForEach(store.services) { service in
+                HStack(spacing: 12) {
+                    IconPlate(glyph: "🌐", label: service.name)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(service.name).font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.fg).lineLimit(1)
+                        Text(service.url.absoluteString).font(.system(size: 11)).foregroundStyle(Theme.muted).lineLimit(1)
+                    }
+                    Spacer(minLength: 4)
+                    IconButton(glyph: "🗑️", help: "Remove \(service.name)") { store.removeService(id: service.id) }
+                }
+                .padding(.horizontal, 10).padding(.vertical, 8)
+                .card(radius: 16)
+            }
+        }
+    }
 }
 
 private struct ServiceRow: View {
@@ -120,10 +187,9 @@ private struct ServiceRow: View {
 
     private var tone: Color {
         switch condition {
-        case .operational: Theme.muted
+        case .operational, .unknown: Theme.muted
         case .degraded: Theme.warn
         case .outage: Theme.bad
-        case .unknown: Theme.muted
         }
     }
 

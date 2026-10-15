@@ -6,7 +6,7 @@ Service Status is a native SwiftUI app for the macOS menu bar. It has no account
 
 ![Screenshot of the Service Status popover. A dark glass-style panel shows three counts (working, degraded, outage) above one rounded card for each service.](screenshot.png)
 
-The interface uses a glass-style design: a dark panel, rounded cards, and emoji for every state. Each state has its own shape, so colour is never the only signal. Every icon has a tooltip and a VoiceOver label.
+The interface uses a glass-style design: a floating glass title bar and a floating glass dock sit above a dark page that scrolls underneath them. Cards are rounded and every state is an emoji. Adding and removing services happens inside the same panel. Each state has its own shape, so colour is never the only signal. Every icon has a tooltip and a VoiceOver label.
 
 ## How it works
 
@@ -49,7 +49,7 @@ The first launch creates this file:
 ~/Library/Application Support/Service Status/services.json
 ```
 
-To add or remove a service, click the menu bar icon, then click the 🛠️ button. The app writes your changes to `services.json`.
+To add or remove a service, click the menu bar icon, then open the 🛠️ tab in the bar at the bottom. Type a name and a URL, then click ➕. Click 🗑️ to remove a service. The app writes your changes to `services.json`.
 
 To edit the configuration by hand:
 
@@ -160,8 +160,8 @@ The self-test is in the executable. Some macOS installations that have only the 
 | `ConfigurationLoader.swift` | JSON parsing, defaults, validation, and creation of the starter file |
 | `StatusChecker.swift` | Providers for Statuspage, HTTP, and JSON |
 | `StatusStore.swift` | Observable state, concurrent refresh, and polling loop |
-| `MenuBarContentView.swift` | Native popover interface |
-| `Theme.swift` | Colours, cards, and emoji buttons for the glass-style design |
+| `MenuBarContentView.swift` | Native popover: glass title bar, dock, service list, and the manage page |
+| `Theme.swift` | Colours, cards, the glass bar, and the dock tabs |
 | `ServiceStatusMenuApp.swift` | SwiftUI app and menu bar entry point |
 | `build-app.sh` | Release build, `.app` bundling, and ad-hoc signing |
 
