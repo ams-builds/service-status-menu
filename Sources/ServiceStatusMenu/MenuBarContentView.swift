@@ -1,23 +1,23 @@
 import SwiftUI
 
-/// Same layout language as the Orbi menu: near-black base, emoji plates, hairline cards, 400 x 660.
-/// The title bar and the dock float on glass above the page, so the page scrolls underneath them.
+/// Hearth's layout, shared with the Orbi menu through Theme.swift: the heading scrolls with the
+/// page and pins as a glass card at the top; the dock floats on glass at the bottom.
 struct MenuBarContentView: View {
     enum Page { case status, manage }
 
     @ObservedObject var store: StatusStore
     @State private var page = Page.status
-    @State private var spin = 0.0
 
     private func count(_ condition: ServiceCondition) -> Int {
         store.services.filter { (store.status(for: $0)?.condition ?? .unknown) == condition }.count
     }
 
     var body: some View {
-        ZStack(alignment: .top) {
-            Theme.base
-
-            ScrollView {
+        ZStack {
+            PanelBackground()
+            GlassPage(eyebrow: eyebrow, title: page == .status ? "Services" : "Manage") {
+                chips
+            } content: {
                 VStack(spacing: 8) {
                     if let error = store.configurationError {
                         Text("⚠️ " + error)
@@ -27,19 +27,11 @@ struct MenuBarContentView: View {
                     }
                     if page == .status { statusPage } else { ManageView(store: store) }
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 92)
-                .padding(.bottom, 88)
-            }
-
-            header.padding(.horizontal, 12).padding(.top, 12)
-
-            VStack {
-                Spacer()
-                dock.padding(.bottom, 14)
             }
         }
-        .frame(width: 400, height: 660)
+        .overlay(alignment: .bottom) { dock.padding(.bottom, 14) }
+        .frame(width: Theme.panel.width, height: Theme.panel.height)
+        .foregroundStyle(Theme.ink)
     }
 
     // MARK: Pages
@@ -56,68 +48,34 @@ struct MenuBarContentView: View {
         }
     }
 
-    // MARK: Floating chrome
+    // MARK: Heading and dock
 
-    private var header: some View {
-        HStack(spacing: 12) {
-            Text(store.overallCondition.emoji).font(.system(size: 26))
-                .help(store.overallCondition.title)
-                .accessibilityLabel(store.overallCondition.title)
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Service Status")
-                    .font(.system(size: 16, weight: .semibold)).foregroundStyle(Theme.fg)
-                Text(headerDetail).font(.system(size: 11)).foregroundStyle(Theme.muted).lineLimit(1)
-            }
-            Spacer()
-            HStack(spacing: -6) {
-                chip("✅", count(.operational))
-                chip("⚠️", count(.degraded))
-                chip("🛑", count(.outage))
-            }
+    private var chips: some View {
+        HStack(spacing: 6) {
+            CountChip(glyph: "✅", value: count(.operational), label: "Operational")
+            CountChip(glyph: "⚠️", value: count(.degraded), label: "Degraded")
+            CountChip(glyph: "🛑", value: count(.outage), label: "Outage")
         }
-        .padding(.horizontal, 16).padding(.vertical, 12)
-        .glassBar(radius: 22)
     }
 
-    private var headerDetail: String {
-        if store.isRefreshing { return "⏳" }
-        if let last = store.lastRefresh { return "🔄 " + Self.clock.string(from: last) + " · ⏱️ " + store.refreshIntervalDescription }
-        return "—"
-    }
-
-    private func chip(_ glyph: String, _ value: Int) -> some View {
-        HStack(spacing: 3) {
-            Text(glyph).font(.system(size: 12))
-            Text("\(value)").font(.system(size: 12, weight: .semibold)).monospacedDigit().foregroundStyle(Theme.fg)
-        }
-        .padding(.horizontal, 9).frame(height: 28)
-        .background(Capsule().fill(Theme.base.opacity(0.55)))
-        .padding(.leading, 8)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(glyph) \(value)")
+    private var eyebrow: String {
+        if store.isRefreshing { return "Service Status · ⏳" }
+        if let last = store.lastRefresh { return "Service Status · 🔄 " + Self.clock.string(from: last) }
+        return "Service Status"
     }
 
     private var dock: some View {
-        HStack(spacing: 2) {
-            DockTab(glyph: "📋", help: "Services", selected: page == .status) {
-                withAnimation(.spring(response: 0.4, dampingFraction: 1)) { page = .status }
-            }
-            DockTab(glyph: "🛠️", help: "Manage services", selected: page == .manage) {
-                withAnimation(.spring(response: 0.4, dampingFraction: 1)) { page = .manage }
-            }
-            Rectangle().fill(Theme.hairline).frame(width: 1, height: 22).padding(.horizontal, 4)
-            DockTab(glyph: "🔄", help: "Refresh now") {
-                withAnimation(.easeInOut(duration: 0.6)) { spin += 360 }
-                Task { await store.refresh() }
-            }
-            .rotationEffect(.degrees(spin))
-            .disabled(store.isRefreshing || store.configuration == nil)
-            DockTab(glyph: "📥", help: "Reload config") { Task { await store.reloadConfiguration() } }
-            DockTab(glyph: "📂", help: "Show config in Finder") { store.revealConfiguration() }
-            DockTab(glyph: "🚪", help: "Quit Service Status") { store.quit() }
-        }
-        .padding(6)
-        .glassPill()
+        Dock(pages: [DockPage(page: Page.status, glyph: "📋", help: "Services"),
+                     DockPage(page: Page.manage, glyph: "🛠️", help: "Manage services")],
+             selection: $page,
+             actions: [
+                DockAction(glyph: "🔄", help: "Refresh now", disabled: store.isRefreshing || store.configuration == nil, spins: true) {
+                    Task { await store.refresh() }
+                },
+                DockAction(glyph: "📥", help: "Reload config") { Task { await store.reloadConfiguration() } },
+                DockAction(glyph: "📂", help: "Show config in Finder") { store.revealConfiguration() },
+                DockAction(glyph: "🚪", help: "Quit Service Status") { store.quit() }
+             ])
     }
 
     private static let clock: DateFormatter = {
@@ -139,9 +97,12 @@ private struct ManageView: View {
 
     private func field(_ title: String, text: Binding<String>) -> some View {
         TextField(title, text: text)
-            .textFieldStyle(.plain).font(.system(size: 13))
-            .padding(.horizontal, 10).frame(height: 30)
-            .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(Theme.hover))
+            .textFieldStyle(.plain).font(.system(size: 13.5))
+            .padding(.horizontal, 14).frame(height: 40)
+            .background {
+                let shape = RoundedRectangle(cornerRadius: 13, style: .continuous)
+                shape.fill(Theme.field).overlay(shape.strokeBorder(Theme.fieldEdge, lineWidth: 0.75))
+            }
     }
 
     var body: some View {
