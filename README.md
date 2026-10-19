@@ -4,7 +4,19 @@
 
 Service Status is a native SwiftUI app for the macOS menu bar. It has no account, no server, and no data collection.
 
-![Screenshot of the Service Status popover. It shows a list of services and the status of each service.](screenshot.png)
+<p align="center"><img src="screenshot.png" width="446" alt="Screenshot of the Service Status panel. Counts for working, degraded and outage sit beside the Services title. One rounded card per service shows its state emoji, status text, response time and last check. Cloudflare shows a red outage card. A glass dock floats at the bottom."></p>
+
+## The new interface
+
+The menu is a clear, borderless glass panel that drops from the menu bar. It replaces the plain system menu window.
+
+1. **Counts at a glance.** The title shows how many services are ✅ working, ⚠️ degraded and 🛑 down, plus the time of the last check.
+2. **One card per service.** Each card shows the state, the status text, the response time and when it was checked. An outage turns its text red.
+3. **A title that stays put.** As you scroll, the heading fades and a slim glass title bar pins to the top.
+4. **A floating dock.** 📋 services, 🛠️ manage, 🔄 refresh, 📥 reload the config, 📂 show the config in Finder, 🚪 quit. Adding and removing services happens inside the panel.
+5. **Accessible by design.** Each state has its own shape, so colour is never the only signal. Every icon has a tooltip and a VoiceOver label.
+
+The look is adapted from [Hearth](https://github.com/obileonardo/hearth-macos) by [obileonardo](https://github.com/obileonardo), under its MIT licence. The notice is kept in `Theme.swift`.
 
 ## How it works
 
@@ -47,16 +59,15 @@ The first launch creates this file:
 ~/Library/Application Support/Service Status/services.json
 ```
 
-To add or remove a service, click the menu bar icon, then click the 🛠️ button. The app writes your changes to `services.json`.
+To add or remove a service, click the menu bar icon, then open the 🛠️ tab in the bar at the bottom. Type a name and a URL, then click ➕. Click 🗑️ to remove a service. The app writes your changes to `services.json`.
 
 To edit the configuration by hand:
 
 1. Click the menu bar icon.
-2. Open the overflow menu.
-3. Select **Open Configuration**.
-4. Edit the JSON file.
-5. Save the file.
-6. Select **Reload Config**.
+2. Click 📂 to show the file in Finder.
+3. Edit the JSON file.
+4. Save the file.
+5. Click 📥 to reload the configuration.
 
 You can also open `Package.swift` in Xcode to use the source package.
 
@@ -159,7 +170,9 @@ The self-test is in the executable. Some macOS installations that have only the 
 | `ConfigurationLoader.swift` | JSON parsing, defaults, validation, and creation of the starter file |
 | `StatusChecker.swift` | Providers for Statuspage, HTTP, and JSON |
 | `StatusStore.swift` | Observable state, concurrent refresh, and polling loop |
-| `MenuBarContentView.swift` | Native popover interface |
+| `MenuBarContentView.swift` | Panel content: glass title bar, dock, service list, and the manage page |
+| `Theme.swift` | Colours, cards, the glass bar, and the dock tabs (adapted from Hearth, MIT) |
+| `MenuPanel.swift` | Menu bar icon and the clear, borderless panel it opens |
 | `ServiceStatusMenuApp.swift` | SwiftUI app and menu bar entry point |
 | `build-app.sh` | Release build, `.app` bundling, and ad-hoc signing |
 

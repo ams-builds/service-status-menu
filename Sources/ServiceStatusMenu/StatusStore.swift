@@ -167,10 +167,6 @@ final class StatusStore: ObservableObject {
         Task { await refresh() }
     }
 
-    func openSettingsWindow() {
-        SettingsWindowController.shared.show(store: self)
-    }
-
     func status(for service: ServiceConfiguration) -> ServiceStatus? {
         statuses[service.id]
     }
